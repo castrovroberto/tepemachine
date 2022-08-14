@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import tech.yump.msaap.amqp.RabbitMQMessageProducer;
 
-@SpringBootApplication (scanBasePackages = {"tech.yump.msapp.amqp"})
+@SpringBootApplication(scanBasePackages={"tech.yump.msaap", "tech.yump.msapp.amqp", "tech.yump.msapp.notification"})
 public class NotificationApplication {
 
     public static void main(String[] args) {
