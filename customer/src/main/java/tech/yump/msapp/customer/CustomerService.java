@@ -2,6 +2,7 @@ package tech.yump.msapp.customer;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import tech.yump.msaap.amqp.RabbitMQMessageProducer;
 import tech.yump.msapp.clients.fraud.FraudCheckResponse;
 import tech.yump.msapp.clients.fraud.FraudClient;
 import tech.yump.msapp.clients.notification.NotificationClient;
@@ -12,8 +13,8 @@ import tech.yump.msapp.clients.notification.NotificationRequest;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final NotificationClient notificationClient;
     private final FraudClient fraudClient;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public void registerCustomer(CustomerRegistrationRequest request) {
         Customer customer = Customer.builder()
@@ -33,12 +34,12 @@ public class CustomerService {
         }
 
         // todo: send notification in an async manner
-        notificationClient.sendNotification(
-                new NotificationRequest(
-                        customer.getId(),
-                        customer.getEmail(),
-                        String.format("Hi %s, welcome to Yump Technologies...", customer.getFirstName())
-                )
+        NotificationRequest notificationRequest = new NotificationRequest(
+                customer.getId(),
+                customer.getEmail(),
+                String.format("Hi %s, welcome to Yump Technologies...", customer.getFirstName())
         );
+
+        rabbitMQMessageProducer.publish(notificationRequest, "internal.exchange", "internal.notification.routing-key");
     }
 }
