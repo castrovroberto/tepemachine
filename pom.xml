@@ -23,11 +23,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>18</maven.compiler.source>
-    <maven.compiler.target>18</maven.compiler.target>
-    <spring.boot.maven.plugin.version>3.8.5</spring.boot.maven.plugin.version>
-    <spring.boot.dependencies.version>2.7.2</spring.boot.dependencies.version>
-    <spring.cloud.version>2021.0.1</spring.cloud.version>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <spring.boot.maven.plugin.version>3.2.6</spring.boot.maven.plugin.version>
+    <spring.boot.dependencies.version>3.2.6</spring.boot.dependencies.version>
+    <spring.cloud.version>2023.0.5</spring.cloud.version>
     <image>castrovroberto/${project.artifactId}:${project.version}</image>
   </properties>
 
@@ -54,22 +54,12 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.24</version>
+      <version>1.18.30</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <version>${spring.boot.dependencies.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-openfeign</artifactId>
-      <version>3.1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-sleuth</artifactId>
-      <version>3.1.3</version>
     </dependency>
   </dependencies>
 
@@ -94,7 +84,7 @@
           <version>3.2.1</version>
           <configuration>
             <from>
-              <image>eclipse-temurin:18</image>
+              <image>eclipse-temurin:21</image>
               <platforms>
                 <platform>
                   <architecture>arm64</architecture>
@@ -119,10 +109,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.13.0</version>
         <configuration>
-          <source>18</source>
-          <target>18</target>
+        <source>21</source>
+        <target>21</target>
         </configuration>
       </plugin>
     </plugins>
