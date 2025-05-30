@@ -1,0 +1,38 @@
+# VeriBoard Fraud Service - Development Environment Configuration
+# This configuration extends application.yml for local development
+
+server:
+  port: 8081
+
+spring:
+  # Development Database Configuration
+  datasource:
+    url: jdbc:postgresql://desktop.local:5432/fraud
+    username: yumptech
+    password: password
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  
+  # JPA Development Settings
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+# Zipkin Tracing for Development
+zipkin:
+  base-url: http://desktop.local:9411
+
+# Development Logging
+logging:
+  level:
+    tech.yump.veriboard: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  file:
+    name: logs/fraud-dev.log 

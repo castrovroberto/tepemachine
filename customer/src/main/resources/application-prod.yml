@@ -1,0 +1,94 @@
+# VeriBoard Customer Service - Production Environment Configuration
+# This configuration extends application.yml for production deployment
+
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  # Production Database Configuration
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  # JPA Production Settings
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+
+  # RabbitMQ Production Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
+    connection-timeout: 30000
+
+# Eureka Production Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka}
+  instance:
+    hostname: ${HOSTNAME:customer-service}
+    non-secure-port: 8080
+    metadata-map:
+      version: ${BUILD_VERSION:0.1.0}
+      build-time: ${BUILD_TIME}
+
+# Zipkin Production Configuration
+zipkin:
+  base-url: ${ZIPKIN_URL:http://zipkin:9411}
+
+# Production Monitoring and Security
+management:
+  endpoint:
+    health:
+      show-details: never
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1  # Sample 10% of traces in production
+
+# Production Logging
+logging:
+  level:
+    tech.yump.veriboard: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.security: WARN
+  file:
+    name: /var/log/veriboard/customer.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB 

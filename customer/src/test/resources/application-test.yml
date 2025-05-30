@@ -1,0 +1,69 @@
+# VeriBoard Customer Service - Test Environment Configuration
+# This configuration extends application.yml for testing
+
+server:
+  port: 0  # Random port for tests
+
+spring:
+  # Default Test Database (H2 in-memory) - can be overridden by TestContainers
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+  
+  # JPA Test Settings
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: false
+        format_sql: false
+    show-sql: false
+    defer-datasource-initialization: true
+
+  # H2 Console (useful for debugging)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Test RabbitMQ Configuration (will be overridden by TestContainers)
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  # Disable cloud components for testing
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+# Disable Eureka for tests
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Disable tracing for tests    
+management:
+  tracing:
+    enabled: false
+
+# Test Logging Configuration
+logging:
+  level:
+    tech.yump.veriboard: DEBUG
+    org.springframework.cloud: WARN
+    org.springframework.test: INFO
+    org.testcontainers: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" 
