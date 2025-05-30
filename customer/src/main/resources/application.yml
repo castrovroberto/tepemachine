@@ -1,28 +1,59 @@
-server:
-  port: 8080
+# VeriBoard Customer Service - Base Configuration
+# This file contains common configuration shared across all environments
+
 spring:
   application:
     name: customer
-  datasource:
-    password: password
-    url: jdbc:postgresql://desktop.local:5432/customer
-    username: yumptech
+  
+  # JPA Base Configuration
   jpa:
-    hibernate:
-      ddl-auto: update
+    open-in-view: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: true
-  zipkin:
-    base-url: http://desktop.local:9411
-  rabbitmq:
-    addresses: desktop.local:5672
+        jdbc:
+          time_zone: UTC
+    show-sql: false
 
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+  # Cloud Configuration
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+# Eureka Base Configuration  
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+# Management and Monitoring
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    enabled: true
+
+# Logging Base Configuration
+logging:
+  level:
+    tech.yump.veriboard: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

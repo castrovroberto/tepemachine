@@ -1,4 +1,4 @@
-package tech.yump.msapp.fraud;
+package tech.yump.veriboard.fraud;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
