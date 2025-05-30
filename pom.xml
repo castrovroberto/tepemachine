@@ -18,8 +18,8 @@
     <module>amqp</module>
   </modules>
 
-  <name>msapp</name>
-  <url>https://www.yump.tech</url>
+  <name>VeriBoard</name>
+  <url>https://github.com/castrovroberto/tepemachine</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
