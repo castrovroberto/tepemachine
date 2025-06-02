@@ -14,7 +14,7 @@ spring:
     hikari:
       maximum-pool-size: 2
       minimum-idle: 1
-  
+
   # JPA Test Settings
   jpa:
     hibernate:
@@ -33,22 +33,26 @@ spring:
       enabled: true
       path: /h2-console
 
-  # Disable cloud components for testing
+  # Disable cloud components for most tests
   cloud:
+    # === KUBERNETES DISCOVERY DISABLED FOR TESTS ===
+    kubernetes:
+      discovery:
+        enabled: false # Disable Kubernetes discovery for tests
+      loadbalancer:
+        enabled: false # Disable Kubernetes load balancing for tests
+    discovery:
+      enabled: false # General discovery client disable
     compatibility-verifier:
       enabled: false
 
-# Disable Eureka for tests
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-
-# Disable tracing for tests    
+# Disable tracing for tests
 management:
   tracing:
     enabled: false
+  zipkin:
+    tracing:
+      endpoint: # Effectively disables Zipkin reporter by not providing an endpoint
 
 # Test Logging Configuration
 logging:
@@ -58,4 +62,4 @@ logging:
     org.springframework.test: INFO
     org.hibernate.SQL: WARN
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" 
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n"

@@ -7,15 +7,16 @@ spring:
   zipkin:
     base-url: http://desktop.local:9411
   cloud:
+    # Kubernetes Service Discovery Configuration
+    kubernetes:
+      discovery:
+        all-namespaces: true # Discover services across all namespaces
+        enabled: true # Enable Kubernetes service discovery
+      loadbalancer:
+        mode: SERVICE # Use Kubernetes Service names for load balancing
     gateway:
       routes:
         - id: customer
-          uri: lb://CUSTOMER
+          uri: lb://customer
           predicates:
             - Path=/api/v1/customers/**
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    fetch-registry: true
-    register-with-eureka: true

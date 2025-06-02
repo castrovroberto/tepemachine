@@ -1,14 +1,11 @@
-# VeriBoard Customer Service - Production Environment Configuration
-# This configuration extends application.yml for production deployment
+# VeriBoard Customer Service - Kubernetes Environment Configuration
+# This configuration extends application.yml for Kubernetes deployment
 
 server:
   port: 8080
-  error:
-    include-message: never
-    include-stacktrace: never
 
 spring:
-  # Production Database Configuration
+  # Production Database Configuration (using environment variables from K8s secrets)
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
@@ -20,11 +17,11 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 60000
-  
-  # JPA Production Settings
+
+  # JPA Kubernetes Settings
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate # Use Flyway for schema management in production
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -34,24 +31,32 @@ spring:
         order_updates: true
     show-sql: false
 
-  # RabbitMQ Production Configuration
+  # RabbitMQ Kubernetes Configuration
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
-    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
     connection-timeout: 30000
 
-# Zipkin Production Configuration
-zipkin:
-  base-url: ${ZIPKIN_URL:http://zipkin:9411}
+  # Cloud Configuration for Kubernetes
+  cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: false # In production, limit to current namespace for security
+        enabled: true
+      loadbalancer:
+        mode: SERVICE
+    compatibility-verifier:
+      enabled: false
 
-# Production Monitoring and Security
+# Monitoring and Health Checks for Kubernetes
 management:
   endpoint:
     health:
-      show-details: never
+      show-details: when_authorized
+      probes:
+        enabled: true # Enable liveness and readiness probes
   endpoints:
     web:
       exposure:
@@ -64,7 +69,11 @@ management:
   tracing:
     enabled: true
     sampling:
-      probability: 0.1  # Sample 10% of traces in production
+      probability: 0.1 # Sample 10% of traces in production
+
+# Zipkin Configuration
+zipkin:
+  base-url: ${ZIPKIN_URL:http://zipkin:9411}
 
 # Production Logging
 logging:
@@ -73,10 +82,5 @@ logging:
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
     org.springframework.security: WARN
-  file:
-    name: /var/log/veriboard/customer.log
-  logback:
-    rollingpolicy:
-      max-file-size: 100MB
-      max-history: 30
-      total-size-cap: 3GB 
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" 

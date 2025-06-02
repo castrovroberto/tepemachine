@@ -5,9 +5,9 @@ server:
   port: 0  # Random port for tests
 
 spring:
-  # Default Test Database (H2 in-memory) - can be overridden by TestContainers
+  # Default Test Database (H2 in-memory)
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:customer_testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: password
@@ -33,29 +33,26 @@ spring:
       enabled: true
       path: /h2-console
 
-  # Test RabbitMQ Configuration (will be overridden by TestContainers)
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-
-  # Disable cloud components for testing
+  # Disable cloud components for most tests
   cloud:
+    # === KUBERNETES DISCOVERY DISABLED FOR TESTS ===
+    kubernetes:
+      discovery:
+        enabled: false # Disable Kubernetes discovery for tests
+      loadbalancer:
+        enabled: false # Disable Kubernetes load balancing for tests
+    discovery:
+      enabled: false # General discovery client disable
     compatibility-verifier:
       enabled: false
-
-# Disable Eureka for tests
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
 
 # Disable tracing for tests    
 management:
   tracing:
     enabled: false
+  zipkin:
+    tracing:
+      endpoint: # Effectively disables Zipkin reporter by not providing an endpoint
 
 # Test Logging Configuration
 logging:
@@ -66,4 +63,4 @@ logging:
     org.testcontainers: INFO
     org.hibernate.SQL: WARN
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" 
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" 

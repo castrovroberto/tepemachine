@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>tech.yump.veriboard</groupId>
@@ -11,7 +10,6 @@
   <modules>
     <module>customer</module>
     <module>fraud</module>
-    <module>eureka-server</module>
     <module>clients</module>
     <module>notification</module>
     <module>apiwg</module>
@@ -29,15 +27,21 @@
     <spring.boot.dependencies.version>3.2.6</spring.boot.dependencies.version>
     <spring.cloud.version>2023.0.5</spring.cloud.version>
     <image>castrovroberto/${project.artifactId}:${project.version}</image>
-    
-    <!-- Testing and Quality Properties -->
+
+    <!-- Dependency Versions -->
+    <lombok.version>1.18.30</lombok.version>
+    <testcontainers.version>1.19.7</testcontainers.version>
+
+    <!-- Plugin Versions -->
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven.surefire.version>3.2.5</maven.surefire.version>
     <maven.failsafe.version>3.2.5</maven.failsafe.version>
     <jacoco.version>0.8.11</jacoco.version>
     <spotbugs.version>4.8.3</spotbugs.version>
+    <findsecbugs-plugin.version>1.13.0</findsecbugs-plugin.version>
     <owasp.dependency-check.version>9.0.9</owasp.dependency-check.version>
-    <testcontainers.version>1.19.7</testcontainers.version>
-    
+    <jib-maven-plugin.version>3.2.1</jib-maven-plugin.version>
+
     <!-- Coverage Configuration -->
     <jacoco.coverage.minimum>0.70</jacoco.coverage.minimum>
   </properties>
@@ -66,6 +70,24 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+      <!-- Added Spring Cloud Kubernetes Starter -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+        <!-- Version is managed by spring-cloud-dependencies BOM -->
+      </dependency>
+      <!--
+        Alternatively, for more specific needs, you could use:
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+      </dependency>
+      -->
     </dependencies>
   </dependencyManagement>
 
@@ -73,7 +95,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>${lombok.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -116,7 +138,7 @@
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>${jib-maven-plugin.version}</version>
           <configuration>
             <from>
               <image>eclipse-temurin:21</image>
@@ -138,7 +160,7 @@
             </to>
           </configuration>
         </plugin>
-        
+
         <!-- Testing Plugins -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -152,7 +174,7 @@
             <argLine>@{argLine} -Xmx1024m</argLine>
           </configuration>
         </plugin>
-        
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
@@ -173,7 +195,7 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- JaCoCo Code Coverage -->
         <plugin>
           <groupId>org.jacoco</groupId>
@@ -219,7 +241,7 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- SpotBugs Static Analysis -->
         <plugin>
           <groupId>com.github.spotbugs</groupId>
@@ -235,7 +257,7 @@
               <plugin>
                 <groupId>com.h3xstream.findsecbugs</groupId>
                 <artifactId>findsecbugs-plugin</artifactId>
-                <version>1.13.0</version>
+                <version>${findsecbugs-plugin.version}</version>
               </plugin>
             </plugins>
           </configuration>
@@ -247,7 +269,7 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- OWASP Dependency Check -->
         <plugin>
           <groupId>org.owasp</groupId>
@@ -273,19 +295,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-        <source>21</source>
-        <target>21</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
       </plugin>
     </plugins>
   </build>
-  
+
   <profiles>
     <profile>
       <id>integration-tests</id>
