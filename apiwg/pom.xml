@@ -17,6 +17,12 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <!-- Version and executions are inherited from parent's pluginManagement -->
+            </plugin>
         </plugins>
     </build>
 

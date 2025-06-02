@@ -26,6 +26,8 @@
     <spring.boot.maven.plugin.version>3.2.6</spring.boot.maven.plugin.version>
     <spring.boot.dependencies.version>3.2.6</spring.boot.dependencies.version>
     <spring.cloud.version>2023.0.5</spring.cloud.version>
+    <!-- Add Spring Cloud Kubernetes Version -->
+    <spring.cloud.kubernetes.version>3.1.5</spring.cloud.kubernetes.version>
     <image>castrovroberto/${project.artifactId}:${project.version}</image>
 
     <!-- Dependency Versions -->
@@ -62,6 +64,14 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- Import Spring Cloud Kubernetes BOM -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-kubernetes-dependencies</artifactId>
+        <version>${spring.cloud.kubernetes.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- Testcontainers BOM for integration tests -->
       <dependency>
         <groupId>org.testcontainers</groupId>
@@ -71,22 +81,16 @@
         <scope>import</scope>
       </dependency>
 
-      <!-- Added Spring Cloud Kubernetes Starter -->
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
-        <!-- Version is managed by spring-cloud-dependencies BOM -->
-      </dependency>
       <!--
-        Alternatively, for more specific needs, you could use:
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
-      </dependency>
+        The explicit entry for spring-cloud-starter-kubernetes-client-all
+        that was here previously is now redundant because its version
+        will be managed by the spring-cloud-kubernetes-dependencies BOM.
+        Child modules (customer, apiwg) can now declare:
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+        </dependency>
+        and the version will be correctly inherited.
       -->
     </dependencies>
   </dependencyManagement>
