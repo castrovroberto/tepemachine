@@ -214,7 +214,7 @@
               <exclude>**/*IT.java</exclude>
               <exclude>**/*IntegrationTest.java</exclude>
             </excludes>
-            <argLine>@{argLine} -Xmx1024m</argLine>
+            <argLine>-Xmx1024m</argLine>
           </configuration>
         </plugin>
 

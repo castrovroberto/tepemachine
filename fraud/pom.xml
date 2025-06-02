@@ -69,11 +69,19 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- This plugin declaration activates JaCoCo for this module -->
+            <!-- JaCoCo for code coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <!-- Version and executions are inherited from parent's pluginManagement -->
+            </plugin>
+            
+            <!-- Override Surefire configuration for JaCoCo integration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -Xmx1024m</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>
