@@ -22,6 +22,12 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
         
+        <!-- Spring Boot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        
         <!-- Kubernetes Discovery -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

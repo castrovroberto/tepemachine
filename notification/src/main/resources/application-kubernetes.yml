@@ -1,8 +1,8 @@
-# VeriBoard Customer Service - Kubernetes Environment Configuration
+# VeriBoard Notification Service - Kubernetes Environment Configuration
 # This configuration extends application.yml for Kubernetes deployment
 
 server:
-  port: 8080
+  port: 8082
 
 spring:
   # Production Database Configuration (using environment variables from K8s secrets)
