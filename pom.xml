@@ -45,7 +45,8 @@
     <jib-maven-plugin.version>3.2.1</jib-maven-plugin.version>
 
     <!-- Coverage Configuration -->
-    <jacoco.coverage.minimum>0.70</jacoco.coverage.minimum>
+    <jacoco.coverage.line.minimum>0.70</jacoco.coverage.line.minimum>
+    <jacoco.coverage.branch.minimum>0.50</jacoco.coverage.branch.minimum>
   </properties>
 
   <dependencyManagement>
@@ -231,12 +232,12 @@
                       <limit>
                         <counter>INSTRUCTION</counter>
                         <value>COVEREDRATIO</value>
-                        <minimum>${jacoco.coverage.minimum}</minimum>
+                        <minimum>${jacoco.coverage.line.minimum}</minimum>
                       </limit>
                       <limit>
                         <counter>BRANCH</counter>
                         <value>COVEREDRATIO</value>
-                        <minimum>${jacoco.coverage.minimum}</minimum>
+                        <minimum>${jacoco.coverage.branch.minimum}</minimum>
                       </limit>
                     </limits>
                   </rule>

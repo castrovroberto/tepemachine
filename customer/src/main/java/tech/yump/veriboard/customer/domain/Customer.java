@@ -1,11 +1,15 @@
 package tech.yump.veriboard.customer.domain;
 
+import lombok.Getter;
+
 /**
  * Domain entity representing a Customer in the VeriBoard platform.
  * This is a pure domain object with no external dependencies.
  */
+@Getter
 public class Customer {
-    
+
+    // Getters
     private Integer id;
     private String firstName;
     private String lastName;
@@ -35,24 +39,7 @@ public class Customer {
     public boolean isNew() {
         return id == null;
     }
-    
-    // Getters
-    public Integer getId() {
-        return id;
-    }
-    
-    public String getFirstName() {
-        return firstName;
-    }
-    
-    public String getLastName() {
-        return lastName;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
+
     // For testing and debugging
     @Override
     public String toString() {
