@@ -15,19 +15,19 @@ VeriBoard is a modern microservices-based platform designed to streamline custom
 - **Customer Registration**: Secure customer onboarding with input validation
 - **Fraud Detection**: Real-time risk assessment during registration
 - **Notification System**: Automated welcome messages and alerts via RabbitMQ
-- **Service Discovery**: Eureka-based microservice registration and discovery
 - **API Gateway**: Centralized routing and load balancing
+- **Kubernetes-Native Service Discovery**: Cloud-native service registration and discovery
 - **Distributed Tracing**: Request tracking across services with Zipkin
 - **Data Persistence**: PostgreSQL databases for each microservice
 
 ## Architecture Overview
 
-VeriBoard follows a microservices architecture pattern with the following core components:
+VeriBoard follows a cloud-native microservices architecture pattern optimized for Kubernetes deployment:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │────│ Eureka Server   │────│   Customer      │
-│   (Port: 8083)  │    │   (Port: 8761)  │    │ Service (8080)  │
+│   API Gateway   │────│   Kubernetes    │────│   Customer      │
+│   (Port: 8083)  │    │Service Discovery│    │ Service (8080)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                                              │
          │              ┌─────────────────┐            │
@@ -51,20 +51,21 @@ VeriBoard follows a microservices architecture pattern with the following core c
 ### Core Technologies
 - **Java 21** (Amazon Corretto)
 - **Spring Boot 3.2.6** (Web, Data JPA, AMQP, Validation)
-- **Spring Cloud 2023.0.5** (Gateway, Netflix Eureka, OpenFeign)
+- **Spring Cloud 2023.0.5** (Gateway, Kubernetes, OpenFeign)
 - **Maven** for build management
 
 ### Infrastructure
 - **PostgreSQL** for data persistence
 - **RabbitMQ** for message queuing
 - **Zipkin** for distributed tracing
-- **Docker & Docker Compose** for containerization
-- **Kubernetes** configuration ready
+- **Kubernetes** for orchestration and service discovery
+- **Docker** for containerization
 
 ### Development Tools
 - **Lombok** for boilerplate code reduction
 - **Jib** for container image building
 - **pgAdmin** for database administration
+- **Testcontainers** for integration testing
 
 ## Prerequisites
 
@@ -73,6 +74,8 @@ Before running VeriBoard, ensure you have the following installed:
 - **Java 21** (Amazon Corretto recommended)
 - **Maven 3.6+**
 - **Docker** and **Docker Compose**
+- **Kubernetes cluster** (for production deployment)
+- **kubectl** configured for your cluster
 - **Git** for version control
 
 ## Quick Start
@@ -83,43 +86,48 @@ git clone https://github.com/castrovroberto/tepemachine.git
 cd tepemachine
 ```
 
-### 2. Build the Application
+### 2. Start Infrastructure Services
+```bash
+# Start supporting infrastructure (PostgreSQL, RabbitMQ, Zipkin)
+docker-compose up -d
+
+# Verify infrastructure is running
+docker-compose ps
+```
+
+### 3. Build the Application
 ```bash
 # Build all modules and create Docker images
 mvn clean package
 mvn compile jib:dockerBuild
 ```
 
-### 3. Start the Platform
+### 4. Deploy to Kubernetes
 ```bash
-# Start all services with Docker Compose
-docker-compose up -d
+# Apply Kubernetes manifests
+kubectl apply -f k8s/
 
-# View logs
-docker-compose logs -f
-
-# Check service status
-docker ps
+# Check deployment status
+kubectl get pods
+kubectl get services
 ```
 
-### 4. Verify Deployment
+### 5. Verify Deployment
 Wait for all services to start (typically 2-3 minutes), then verify:
 
-- **Eureka Dashboard**: http://localhost:8761
-- **API Gateway Health**: http://localhost:8083/actuator/health
+- **API Gateway Health**: `kubectl port-forward svc/apiwg 8083:8083` then http://localhost:8083/actuator/health
 - **RabbitMQ Management**: http://localhost:15672 (guest/guest)
 - **Zipkin Tracing**: http://localhost:9411
-- **pgAdmin**: http://localhost:5050 (admin@admin.com/root)
+- **pgAdmin**: http://localhost:5050 (pgadmin4@pgadmin.org/admin)
 
 ## Available Services & Ports
 
 | Service | Port | Purpose | Health Check |
 |---------|------|---------|--------------|
-| API Gateway | 8083 | Main entry point | http://localhost:8083/actuator/health |
-| Customer Service | 8080 | Customer management | http://localhost:8080/actuator/health |
-| Fraud Service | 8081 | Risk assessment | http://localhost:8081/actuator/health |
-| Notification Service | 8082 | Messaging | http://localhost:8082/actuator/health |
-| Eureka Server | 8761 | Service discovery | http://localhost:8761 |
+| API Gateway | 8083 | Main entry point | /actuator/health |
+| Customer Service | 8080 | Customer management | /actuator/health |
+| Fraud Service | 8081 | Risk assessment | /actuator/health |
+| Notification Service | 8082 | Messaging | /actuator/health |
 | PostgreSQL | 5432 | Database | N/A |
 | RabbitMQ | 5672, 15672 | Message broker | http://localhost:15672 |
 | Zipkin | 9411 | Distributed tracing | http://localhost:9411 |
@@ -131,6 +139,10 @@ Wait for all services to start (typically 2-3 minutes), then verify:
 
 **Register a new customer:**
 ```bash
+# Port forward the API Gateway service
+kubectl port-forward svc/apiwg 8083:8083
+
+# Register customer
 curl -X POST http://localhost:8083/api/v1/customers \
   -H "Content-Type: application/json" \
   -d '{
@@ -170,26 +182,32 @@ curl -X POST http://localhost:8083/api/v1/customers \
 
 **Check API Gateway status:**
 ```bash
+kubectl port-forward svc/apiwg 8083:8083
 curl http://localhost:8083/actuator/health
 ```
 
 **Check specific service health:**
 ```bash
-curl http://localhost:8080/actuator/health  # Customer Service
-curl http://localhost:8081/actuator/health  # Fraud Service
-curl http://localhost:8082/actuator/health  # Notification Service
+kubectl port-forward svc/customer 8080:8080
+curl http://localhost:8080/actuator/health
+
+kubectl port-forward svc/fraud 8081:8081
+curl http://localhost:8081/actuator/health
+
+kubectl port-forward svc/notification 8082:8082
+curl http://localhost:8082/actuator/health
 ```
 
 ## Development Workflow
 
-### Local Development
+### Local Development with Infrastructure
 ```bash
-# Run infrastructure only (for local service development)
-docker-compose up postgres rabbitmq zipkin eureka-server -d
+# Start only infrastructure services locally
+docker-compose up postgres rabbitmq zipkin pgadmin -d
 
 # Run individual services locally with IDE or:
 mvn spring-boot:run -pl customer
-mvn spring-boot:run -pl fraud
+mvn spring-boot:run -pl fraud  
 mvn spring-boot:run -pl notification
 mvn spring-boot:run -pl apiwg
 ```
@@ -207,7 +225,7 @@ mvn test -pl customer
 
 **Via pgAdmin** (recommended):
 1. Go to http://localhost:5050
-2. Login: admin@admin.com / root
+2. Login: pgadmin4@pgadmin.org / admin
 3. Add servers for customer, fraud, and notification databases
 
 **Via command line:**
@@ -234,10 +252,21 @@ docker exec -it postgres psql -U yumptech -d notification
 - Monitor queue depths, message rates, and connections
 - Default credentials: guest/guest
 
-### Service Discovery
-- Access Eureka Dashboard at http://localhost:8761
-- View registered services and their health status
-- Monitor service instances and load balancing
+### Kubernetes Monitoring
+```bash
+# View service status
+kubectl get services
+
+# View pod logs
+kubectl logs -f deployment/customer
+kubectl logs -f deployment/fraud
+kubectl logs -f deployment/notification
+kubectl logs -f deployment/apiwg
+
+# View pod status
+kubectl get pods
+kubectl describe pod <pod-name>
+```
 
 ## Project Structure
 
@@ -247,46 +276,66 @@ veriboard/
 ├── apiwg/                # API Gateway service
 ├── clients/              # Shared client interfaces
 ├── customer/             # Customer management service
-├── eureka-server/        # Service discovery server
 ├── fraud/                # Fraud detection service
 ├── notification/         # Notification service
 ├── k8s/                  # Kubernetes manifests
 ├── project/              # Project documentation
-├── docker-compose.yml    # Local deployment configuration
+├── docker-compose.yml    # Infrastructure services only
 └── pom.xml              # Parent Maven configuration
 ```
 
-## Stopping the Application
+## Deployment Options
 
+### Local Development
 ```bash
-# Stop all services
+# Infrastructure only
+docker-compose up -d
+# Run services locally via IDE or Maven
+```
+
+### Kubernetes Production
+```bash
+# Deploy all services to Kubernetes
+kubectl apply -f k8s/
+```
+
+### Stopping the Application
+
+**Infrastructure services:**
+```bash
+# Stop infrastructure services
 docker-compose down
 
 # Stop and remove volumes (clears databases)
 docker-compose down -v
+```
 
-# Stop and remove all images
-docker-compose down --rmi all
+**Kubernetes services:**
+```bash
+# Remove Kubernetes deployments
+kubectl delete -f k8s/
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Services not starting**: Check Docker resources (memory/CPU)
-2. **Port conflicts**: Ensure ports 8080-8083, 5432, 5672, 9411, 8761 are available
-3. **Database connection issues**: Wait for PostgreSQL to fully start before services
-4. **Service discovery issues**: Verify Eureka server is healthy before starting other services
+1. **Services not starting in Kubernetes**: Check pod logs with `kubectl logs`
+2. **Database connection issues**: Ensure PostgreSQL is running via docker-compose
+3. **Service discovery issues**: Verify Kubernetes DNS and service configuration
+4. **Port conflicts**: Ensure infrastructure ports are available
 
 ### Logs
 ```bash
-# View all logs
+# Infrastructure logs
 docker-compose logs
 
-# View specific service logs
-docker-compose logs customer
-docker-compose logs fraud
-docker-compose logs notification
+# Kubernetes service logs
+kubectl logs -f deployment/<service-name>
+kubectl logs -f deployment/customer
+kubectl logs -f deployment/fraud
+kubectl logs -f deployment/notification
+kubectl logs -f deployment/apiwg
 ```
 
 ## Contributing
@@ -307,4 +356,4 @@ For questions or support, please open an issue in the GitHub repository or conta
 
 ---
 
-**VeriBoard** - Transforming customer onboarding through intelligent microservices architecture.
+**VeriBoard** - Transforming customer onboarding through cloud-native microservices architecture.
