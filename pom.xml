@@ -53,6 +53,9 @@
     <!-- Coverage Configuration -->
     <jacoco.coverage.line.minimum>0.70</jacoco.coverage.line.minimum>
     <jacoco.coverage.branch.minimum>0.50</jacoco.coverage.branch.minimum>
+    
+    <!-- Resilience4j Version -->
+    <resilience4j.version>2.2.0</resilience4j.version>
   </properties>
 
   <dependencyManagement>
@@ -110,6 +113,15 @@
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
         <version>${awaitility.version}</version>
+      </dependency>
+      
+      <!-- Resilience4j Dependencies -->
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-bom</artifactId>
+        <version>${resilience4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

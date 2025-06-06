@@ -57,12 +57,45 @@ management:
     # sampling:
     #   probability: 1.0 # Default, can be overridden per profile
 
+# Resilience4j Configuration for Fraud Service
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-check:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        record-exceptions:
+          - java.lang.RuntimeException
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          
+  retry:
+    instances:
+      fraud-check:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.lang.RuntimeException
+          
+  timelimiter:
+    instances:
+      fraud-check:
+        timeout-duration: 5s
+        cancel-running-future: true
+
 # Logging Base Configuration
 logging:
   level:
     tech.yump.veriboard: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
+    io.github.resilience4j: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] - %msg%n" # Added trace/span IDs
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" # Added trace/span IDs
