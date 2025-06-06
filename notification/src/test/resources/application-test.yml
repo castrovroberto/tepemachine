@@ -21,4 +21,37 @@ rabbitmq:
   queue:
     notification: test.notification.queue
   routing-keys:
-    internal-notification: test.internal.notification.routing.key 
+    internal-notification: test.internal.notification.routing.key
+
+# Resilience4j Configuration for Tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      notification-processing:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        record-exceptions:
+          - java.lang.RuntimeException
+          - org.springframework.amqp.AmqpException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          
+  retry:
+    instances:
+      notification-processing:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.amqp.AmqpException
+          - java.net.ConnectException
+          
+  timelimiter:
+    instances:
+      notification-processing:
+        timeout-duration: 15s
+        cancel-running-future: true

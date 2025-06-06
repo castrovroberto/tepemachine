@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import tech.yump.veriboard.customer.domain.ports.FraudCheckService;
 import tech.yump.veriboard.clients.fraud.FraudCheckResponse;
@@ -19,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
  * - Fallback: Provides graceful degradation
  */
 @Component
+@Primary
 @Slf4j
 public class ResilientFraudCheckServiceAdapter implements FraudCheckService {
     

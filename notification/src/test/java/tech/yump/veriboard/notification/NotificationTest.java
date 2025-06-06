@@ -38,7 +38,14 @@ class NotificationTest {
         LocalDateTime sentAt = LocalDateTime.now();
 
         // When
-        Notification notification = new Notification(id, toCustomerId, toCustomerEmail, sender, message, sentAt);
+        Notification notification = Notification.builder()
+                .id(id)
+                .toCustomerId(toCustomerId)
+                .toCustomerEmail(toCustomerEmail)
+                .sender(sender)
+                .message(message)
+                .sentAt(sentAt)
+                .build();
 
         // Then
         assertThat(notification.getId()).isEqualTo(id);

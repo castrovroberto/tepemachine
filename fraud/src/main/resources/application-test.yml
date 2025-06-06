@@ -54,6 +54,38 @@ management:
     tracing:
       endpoint: # Effectively disables Zipkin reporter by not providing an endpoint
 
+# Resilience4j Configuration for Tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-check:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        record-exceptions:
+          - java.lang.RuntimeException
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          
+  retry:
+    instances:
+      fraud-check:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.lang.RuntimeException
+          
+  timelimiter:
+    instances:
+      fraud-check:
+        timeout-duration: 5s
+        cancel-running-future: true
+
 # Test Logging Configuration
 logging:
   level:
