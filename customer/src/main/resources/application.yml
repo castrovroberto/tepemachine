@@ -23,18 +23,15 @@ spring:
 
   # Cloud Configuration
   cloud:
+    # Kubernetes Service Discovery Configuration
+    kubernetes:
+      discovery:
+        all-namespaces: true # Discover services across all namespaces
+        enabled: true # Enable Kubernetes service discovery
+      loadbalancer:
+        mode: SERVICE # Use Kubernetes Service names for load balancing
     compatibility-verifier:
       enabled: false
-
-# Eureka Base Configuration  
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
 
 # Management and Monitoring
 management:
@@ -57,3 +54,53 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-service:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.util.concurrent.TimeoutException
+          - java.net.SocketTimeoutException
+        ignore-exceptions:
+          - tech.yump.veriboard.customer.domain.exceptions.CustomerValidationException
+          
+  retry:
+    instances:
+      fraud-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+        ignore-exceptions:
+          - tech.yump.veriboard.customer.domain.exceptions.CustomerFraudException
+          
+  timelimiter:
+    instances:
+      fraud-service:
+        timeout-duration: 10s
+        cancel-running-future: true
+
+# Feign Client Configuration with Timeouts
+feign:
+  client:
+    config:
+      fraud:
+        connect-timeout: 5000
+        read-timeout: 10000
+        logger-level: basic
+  circuitbreaker:
+    enabled: true
+    alphanumeric-ids:
+      enabled: true

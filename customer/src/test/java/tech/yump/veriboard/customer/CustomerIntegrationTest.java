@@ -82,7 +82,6 @@ class CustomerIntegrationTest {
         registry.add("spring.rabbitmq.password", () -> "test_password");
         
         // Ensure cloud components remain disabled
-        registry.add("eureka.client.enabled", () -> "false");
         registry.add("management.tracing.enabled", () -> "false");
     }
 

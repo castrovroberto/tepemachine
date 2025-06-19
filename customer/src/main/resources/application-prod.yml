@@ -43,18 +43,6 @@ spring:
     virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
     connection-timeout: 30000
 
-# Eureka Production Configuration
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka}
-  instance:
-    hostname: ${HOSTNAME:customer-service}
-    non-secure-port: 8080
-    metadata-map:
-      version: ${BUILD_VERSION:0.1.0}
-      build-time: ${BUILD_TIME}
-
 # Zipkin Production Configuration
 zipkin:
   base-url: ${ZIPKIN_URL:http://zipkin:9411}

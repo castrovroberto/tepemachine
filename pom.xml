@@ -1,56 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>tech.yump.veriboard</groupId>
   <artifactId>veriboard</artifactId>
   <packaging>pom</packaging>
   <version>0.1.0</version>
+  
   <modules>
+    <module>clients</module>
+    <module>amqp</module>
     <module>customer</module>
     <module>fraud</module>
-    <module>eureka-server</module>
-    <module>clients</module>
     <module>notification</module>
     <module>apiwg</module>
-    <module>amqp</module>
   </modules>
 
   <name>VeriBoard</name>
+  <description>Microservices-based verification and notification platform</description>
   <url>https://github.com/castrovroberto/tepemachine</url>
 
   <properties>
+    <!-- Java & Encoding -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
-    <spring.boot.maven.plugin.version>3.2.6</spring.boot.maven.plugin.version>
-    <spring.boot.dependencies.version>3.2.6</spring.boot.dependencies.version>
+    
+    <!-- Spring Boot & Cloud Versions -->
+    <spring.boot.version>3.2.6</spring.boot.version>
     <spring.cloud.version>2023.0.5</spring.cloud.version>
-    <image>castrovroberto/${project.artifactId}:${project.version}</image>
+    <spring.cloud.kubernetes.version>3.1.5</spring.cloud.kubernetes.version>
     
-    <!-- Testing and Quality Properties -->
-    <maven.surefire.version>3.2.5</maven.surefire.version>
-    <maven.failsafe.version>3.2.5</maven.failsafe.version>
-    <jacoco.version>0.8.11</jacoco.version>
-    <spotbugs.version>4.8.3</spotbugs.version>
-    <owasp.dependency-check.version>9.0.9</owasp.dependency-check.version>
+    <!-- Core Dependencies -->
+    <lombok.version>1.18.30</lombok.version>
     <testcontainers.version>1.19.7</testcontainers.version>
+    <awaitility.version>4.2.0</awaitility.version>
     
+    <!-- Plugin Versions -->
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+    <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.8.3</spotbugs-maven-plugin.version>
+    <findsecbugs-plugin.version>1.13.0</findsecbugs-plugin.version>
+    <owasp-dependency-check.version>9.0.9</owasp-dependency-check.version>
+    <jib-maven-plugin.version>3.4.0</jib-maven-plugin.version>
+
+    <!-- Docker Configuration -->
+    <image>castrovroberto/${project.artifactId}:${project.version}</image>
+
     <!-- Coverage Configuration -->
-    <jacoco.coverage.minimum>0.70</jacoco.coverage.minimum>
+    <jacoco.coverage.line.minimum>0.70</jacoco.coverage.line.minimum>
+    <jacoco.coverage.branch.minimum>0.50</jacoco.coverage.branch.minimum>
+    
+    <!-- Resilience4j Version -->
+    <resilience4j.version>2.2.0</resilience4j.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- Spring Boot BOM -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.boot.dependencies.version}</version>
+        <version>${spring.boot.version}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      
+      <!-- Spring Cloud BOM -->
       <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-dependencies</artifactId>
@@ -58,7 +77,17 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!-- Testcontainers BOM for integration tests -->
+      
+      <!-- Spring Cloud Kubernetes BOM -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-kubernetes-dependencies</artifactId>
+        <version>${spring.cloud.kubernetes.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      
+      <!-- Testcontainers BOM -->
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
@@ -66,34 +95,55 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+      <!-- Internal Project Dependencies -->
+      <dependency>
+        <groupId>tech.yump.veriboard</groupId>
+        <artifactId>clients</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tech.yump.veriboard</groupId>
+        <artifactId>amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Additional Dependencies -->
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>${awaitility.version}</version>
+      </dependency>
+      
+      <!-- Resilience4j Dependencies -->
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-bom</artifactId>
+        <version>${resilience4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <dependencies>
+    <!-- Common Dependencies for All Modules -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
     </dependency>
+    
+    <!-- Test Dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Testcontainers for integration testing -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>rabbitmq</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -101,10 +151,19 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!-- Spring Boot Plugin -->
         <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${spring.boot.maven.plugin.version}</version>
+          <version>${spring.boot.version}</version>
+          <configuration>
+            <excludes>
+              <exclude>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+              </exclude>
+            </excludes>
+          </configuration>
           <executions>
             <execution>
               <goals>
@@ -113,10 +172,12 @@
             </execution>
           </executions>
         </plugin>
+
+        <!-- Jib Container Plugin -->
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>${jib-maven-plugin.version}</version>
           <configuration>
             <from>
               <image>eclipse-temurin:21</image>
@@ -138,25 +199,42 @@
             </to>
           </configuration>
         </plugin>
-        
-        <!-- Testing Plugins -->
+
+        <!-- Maven Compiler Plugin -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <source>${maven.compiler.source}</source>
+            <target>${maven.compiler.target}</target>
+            <encoding>${project.build.sourceEncoding}</encoding>
+          </configuration>
+        </plugin>
+
+        <!-- Surefire Plugin for Unit Tests -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>${maven-surefire-plugin.version}</version>
           <configuration>
             <includes>
               <include>**/*Test.java</include>
               <include>**/*Tests.java</include>
             </includes>
-            <argLine>@{argLine} -Xmx1024m</argLine>
+            <excludes>
+              <exclude>**/*IT.java</exclude>
+              <exclude>**/*IntegrationTest.java</exclude>
+            </excludes>
+            <argLine>-Xmx1024m</argLine>
           </configuration>
         </plugin>
-        
+
+        <!-- Failsafe Plugin for Integration Tests -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven.failsafe.version}</version>
+          <version>${maven-failsafe-plugin.version}</version>
           <configuration>
             <includes>
               <include>**/*IT.java</include>
@@ -173,12 +251,12 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- JaCoCo Code Coverage -->
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco.version}</version>
+          <version>${jacoco-maven-plugin.version}</version>
           <executions>
             <execution>
               <goals>
@@ -205,12 +283,12 @@
                       <limit>
                         <counter>INSTRUCTION</counter>
                         <value>COVEREDRATIO</value>
-                        <minimum>${jacoco.coverage.minimum}</minimum>
+                        <minimum>${jacoco.coverage.line.minimum}</minimum>
                       </limit>
                       <limit>
                         <counter>BRANCH</counter>
                         <value>COVEREDRATIO</value>
-                        <minimum>${jacoco.coverage.minimum}</minimum>
+                        <minimum>${jacoco.coverage.branch.minimum}</minimum>
                       </limit>
                     </limits>
                   </rule>
@@ -219,12 +297,12 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- SpotBugs Static Analysis -->
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>${spotbugs.version}</version>
+          <version>${spotbugs-maven-plugin.version}</version>
           <configuration>
             <effort>Max</effort>
             <threshold>Low</threshold>
@@ -235,7 +313,7 @@
               <plugin>
                 <groupId>com.h3xstream.findsecbugs</groupId>
                 <artifactId>findsecbugs-plugin</artifactId>
-                <version>1.13.0</version>
+                <version>${findsecbugs-plugin.version}</version>
               </plugin>
             </plugins>
           </configuration>
@@ -247,12 +325,12 @@
             </execution>
           </executions>
         </plugin>
-        
+
         <!-- OWASP Dependency Check -->
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>${owasp.dependency-check.version}</version>
+          <version>${owasp-dependency-check.version}</version>
           <configuration>
             <failBuildOnCVSS>7</failBuildOnCVSS>
             <suppressionFiles>
@@ -269,23 +347,16 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    
     <plugins>
+      <!-- Apply compiler plugin to all modules -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-        <source>21</source>
-        <target>21</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
-  
+
   <profiles>
     <profile>
       <id>integration-tests</id>
@@ -294,6 +365,22 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+    <profile>
+      <id>security-checks</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
           </plugin>
         </plugins>
       </build>

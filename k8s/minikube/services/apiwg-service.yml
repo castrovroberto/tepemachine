@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apiwg
+  labels:
+    app: apiwg
+    component: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apiwg
+  template:
+    metadata:
+      labels:
+        app: apiwg
+        component: api-gateway
+    spec:
+      serviceAccountName: veriboard-service-account
+      containers:
+      - name: apiwg
+        image: castrovroberto/apiwg:0.1.0
+        ports:
+        - containerPort: 8083
+          name: http
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes"
+        - name: ZIPKIN_URL
+          value: "http://zipkin:9411"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8083
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8083
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apiwg
+  labels:
+    app: apiwg
+    component: api-gateway
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8083
+    targetPort: 8083
+    protocol: TCP
+    name: http
+  selector:
+    app: apiwg
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: veriboard-ingress
+  labels:
+    app: veriboard
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: veriboard.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: apiwg
+            port:
+              number: 8083 

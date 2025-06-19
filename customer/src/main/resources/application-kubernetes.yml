@@ -1,0 +1,86 @@
+# VeriBoard Customer Service - Kubernetes Environment Configuration
+# This configuration extends application.yml for Kubernetes deployment
+
+server:
+  port: 8080
+
+spring:
+  # Production Database Configuration (using environment variables from K8s secrets)
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  # JPA Kubernetes Settings
+  jpa:
+    hibernate:
+      ddl-auto: update # Use update for initial deployment to create tables
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+
+  # RabbitMQ Kubernetes Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    connection-timeout: 30000
+
+  # Cloud Configuration for Kubernetes
+  cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: false # In production, limit to current namespace for security
+        enabled: true
+      loadbalancer:
+        mode: SERVICE
+    compatibility-verifier:
+      enabled: false
+
+# Monitoring and Health Checks for Kubernetes
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true # Enable liveness and readiness probes
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1 # Sample 10% of traces in production
+
+# Zipkin Configuration
+zipkin:
+  base-url: ${ZIPKIN_URL:http://zipkin:9411}
+
+# Production Logging
+logging:
+  level:
+    tech.yump.veriboard: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" 

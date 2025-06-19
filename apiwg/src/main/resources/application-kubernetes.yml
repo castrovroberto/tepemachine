@@ -1,0 +1,54 @@
+# VeriBoard API Gateway - Kubernetes Environment Configuration
+# This configuration extends application.yml for Kubernetes deployment
+
+server:
+  port: 8083
+
+spring:
+  # Cloud Configuration for Kubernetes
+  cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: false # Limit to current namespace for security
+        enabled: true
+      loadbalancer:
+        mode: SERVICE
+    gateway:
+      routes:
+        - id: customer
+          uri: lb://customer
+          predicates:
+            - Path=/api/v1/customers/**
+
+# Monitoring and Health Checks for Kubernetes
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true # Enable liveness and readiness probes
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1 # Sample 10% of traces in production
+
+# Zipkin Configuration
+zipkin:
+  base-url: ${ZIPKIN_URL:http://zipkin:9411}
+
+# Production Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" 

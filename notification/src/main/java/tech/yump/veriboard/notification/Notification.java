@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Notification {
 
     @Id
@@ -29,5 +30,9 @@ public class Notification {
     private String sender;
     private String message;
     private LocalDateTime sentAt;
+    
+    // Idempotency field for duplicate detection
+    @Column(unique = true)
+    private String idempotencyKey;
 
 }

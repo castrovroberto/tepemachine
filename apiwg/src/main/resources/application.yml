@@ -7,15 +7,84 @@ spring:
   zipkin:
     base-url: http://desktop.local:9411
   cloud:
+    # Kubernetes Service Discovery Configuration
+    kubernetes:
+      discovery:
+        all-namespaces: true # Discover services across all namespaces
+        enabled: true # Enable Kubernetes service discovery
+      loadbalancer:
+        mode: SERVICE # Use Kubernetes Service names for load balancing
     gateway:
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+            
+      # Route configurations with advanced patterns
       routes:
         - id: customer
-          uri: lb://CUSTOMER
+          uri: lb://customer
           predicates:
             - Path=/api/v1/customers/**
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    fetch-registry: true
-    register-with-eureka: true
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10  # tokens per second
+                redis-rate-limiter.burstCapacity: 20   # maximum tokens
+                redis-rate-limiter.requestedTokens: 1  # tokens per request
+            - name: CircuitBreaker
+              args:
+                name: customer-cb
+                fallbackUri: forward:/fallback/customer
+            - name: Retry
+              args:
+                retries: 3
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+            - name: AddRequestHeader
+              args:
+                name: X-Gateway-Request-Id
+                value: "#{T(java.util.UUID).randomUUID().toString()}"
+            - name: AddResponseHeader
+              args:
+                name: X-Response-Time
+                value: "#{new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss').format(new java.util.Date())}"
+                
+        # Health and monitoring route
+        - id: health-check
+          uri: lb://customer
+          predicates:
+            - Path=/health/**
+          filters:
+            - StripPrefix=1
+            - name: SetPath
+              args:
+                template: /actuator/health
+
+# Resilience4j configuration for Gateway
+resilience4j:
+  circuitbreaker:
+    instances:
+      customer-cb:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        
+  timelimiter:
+    instances:
+      customer-cb:
+        timeout-duration: 10s

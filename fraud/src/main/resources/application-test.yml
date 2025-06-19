@@ -14,7 +14,7 @@ spring:
     hikari:
       maximum-pool-size: 2
       minimum-idle: 1
-  
+
   # JPA Test Settings
   jpa:
     hibernate:
@@ -33,22 +33,58 @@ spring:
       enabled: true
       path: /h2-console
 
-  # Disable cloud components for testing
+  # Disable cloud components for most tests
   cloud:
+    # === KUBERNETES DISCOVERY DISABLED FOR TESTS ===
+    kubernetes:
+      discovery:
+        enabled: false # Disable Kubernetes discovery for tests
+      loadbalancer:
+        enabled: false # Disable Kubernetes load balancing for tests
+    discovery:
+      enabled: false # General discovery client disable
     compatibility-verifier:
       enabled: false
 
-# Disable Eureka for tests
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-
-# Disable tracing for tests    
+# Disable tracing for tests
 management:
   tracing:
     enabled: false
+  zipkin:
+    tracing:
+      endpoint: # Effectively disables Zipkin reporter by not providing an endpoint
+
+# Resilience4j Configuration for Tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-check:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        record-exceptions:
+          - java.lang.RuntimeException
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          
+  retry:
+    instances:
+      fraud-check:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.lang.RuntimeException
+          
+  timelimiter:
+    instances:
+      fraud-check:
+        timeout-duration: 5s
+        cancel-running-future: true
 
 # Test Logging Configuration
 logging:
@@ -58,4 +94,4 @@ logging:
     org.springframework.test: INFO
     org.hibernate.SQL: WARN
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" 
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n"

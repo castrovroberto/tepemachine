@@ -13,7 +13,7 @@ spring:
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
-  
+
   # JPA Development Settings
   jpa:
     hibernate:
@@ -23,9 +23,14 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
-# Zipkin Tracing for Development
-zipkin:
-  base-url: http://desktop.local:9411
+# Management and Monitoring - Development Overrides
+management:
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_TRACING_ENDPOINT_DEV:http://desktop.local:9411/api/v2/spans} # Dev specific Zipkin URL
+  tracing:
+    sampling:
+      probability: 1.0 # Sample all traces in dev
 
 # Development Logging
 logging:
@@ -35,4 +40,4 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   file:
-    name: logs/fraud-dev.log 
+    name: logs/fraud-dev.log

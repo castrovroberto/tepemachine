@@ -3,8 +3,8 @@
 
 spring:
   application:
-    name: fraud
-  
+    name: fraud # Keep this, it's important for K8s service discovery as well
+
   # JPA Base Configuration
   jpa:
     open-in-view: false
@@ -23,30 +23,71 @@ spring:
 
   # Cloud Configuration
   cloud:
-    compatibility-verifier:
-      enabled: false
 
-# Eureka Base Configuration  
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
+    # === ADD KUBERNETES DISCOVERY CONFIGURATION ===
+    kubernetes:
+      discovery:
+        all-namespaces: true # Discover services across all namespaces
+        # primary-port-name: http # Optional: specify if services have multiple ports
+        # enabled: true # Discovery is typically enabled by default with the starter
+      # If using Spring Cloud LoadBalancer with Kubernetes services
+      loadbalancer:
+        mode: SERVICE # Use Kubernetes Service names for load balancing
+    compatibility-verifier:
+      enabled: false # This is fine to keep
 
 # Management and Monitoring
 management:
+  # === UPDATE ZIPKIN CONFIGURATION (Recommended) ===
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_TRACING_ENDPOINT:http://zipkin:9411/api/v2/spans} # Standard property
+  # Old 'spring.zipkin.base-url' or root 'zipkin.base-url' should be removed if present elsewhere
+  # in favor of this standard Micrometer Tracing property.
+
   endpoint:
     health:
       show-details: when_authorized
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
-  tracing:
+        include: health,info,metrics,prometheus # Ensure prometheus is here if used
+  tracing: # This is for Micrometer Tracing general settings
     enabled: true
+    # sampling:
+    #   probability: 1.0 # Default, can be overridden per profile
+
+# Resilience4j Configuration for Fraud Service
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-check:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        record-exceptions:
+          - java.lang.RuntimeException
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          
+  retry:
+    instances:
+      fraud-check:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.lang.RuntimeException
+          
+  timelimiter:
+    instances:
+      fraud-check:
+        timeout-duration: 5s
+        cancel-running-future: true
 
 # Logging Base Configuration
 logging:
@@ -54,6 +95,7 @@ logging:
     tech.yump.veriboard: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
+    io.github.resilience4j: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] - %msg%n" # Added trace/span IDs
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n" # Added trace/span IDs
