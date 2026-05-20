@@ -136,6 +136,34 @@ class CustomerControllerTest {
     }
 
     @Test
+    @DisplayName("Should reject request with blank fields")
+    void shouldRejectRequestWithBlankFields() throws Exception {
+        CustomerRegistrationRequest blankRequest = new CustomerRegistrationRequest("", "", "");
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(blankRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"));
+
+        verify(customerService, never()).registerCustomer(any());
+    }
+
+    @Test
+    @DisplayName("Should reject request with invalid email format")
+    void shouldRejectRequestWithInvalidEmail() throws Exception {
+        CustomerRegistrationRequest badEmail = new CustomerRegistrationRequest("John", "Doe", "not-an-email");
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(badEmail)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Failed"));
+
+        verify(customerService, never()).registerCustomer(any());
+    }
+
+    @Test
     @DisplayName("Should validate request body structure")
     void shouldValidateRequestBodyStructure() throws Exception {
         // Given

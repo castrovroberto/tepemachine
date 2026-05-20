@@ -1,19 +1,14 @@
 package tech.yump.veriboard.customer.domain;
 
-/**
- * Value object representing a customer registration request.
- * Contains the essential data needed to register a new customer.
- */
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public record CustomerRegistrationRequest(
-        String firstName,
-        String lastName,
-        String email) {
-    
-    /**
-     * Creates a Customer domain object from this request.
-     * @return a new Customer instance
-     */
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        @NotBlank @Email String email) {
+
     public Customer toCustomer() {
         return new Customer(firstName, lastName, email);
     }
-} 
+}

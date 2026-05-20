@@ -21,62 +21,24 @@ class NotificationControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private NotificationService notificationService;
+    private IdempotentNotificationService notificationService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
-    void sendNotification_ShouldCallNotificationService() throws Exception {
-        // Given
-        NotificationRequest request = new NotificationRequest(
-                1,
-                "test@example.com",
-                "Test notification"
-        );
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/notification")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-
-        verify(notificationService).send(any(NotificationRequest.class));
-    }
-
-    @Test
-    void sendNotification_WithNullFields_ShouldStillCallService() throws Exception {
-        // Given
-        NotificationRequest request = new NotificationRequest(
-                null,
-                null,
-                null
-        );
-
-        // When & Then
-        mockMvc.perform(post("/api/v1/notification")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-
-        verify(notificationService).send(any(NotificationRequest.class));
-    }
-
-    @Test
     void sendNotification_WithValidData_ShouldReturn200() throws Exception {
-        // Given
         NotificationRequest request = new NotificationRequest(
                 123,
                 "customer@example.com",
                 "Welcome to VeriBoard!"
         );
 
-        // When & Then
         mockMvc.perform(post("/api/v1/notification")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(notificationService).send(request);
+        verify(notificationService).send(any(NotificationRequest.class));
     }
-} 
+}

@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final IdempotentNotificationService notificationService;
 
     @PostMapping
     @CircuitBreaker(name = "notification-processing", fallbackMethod = "fallbackNotification")
@@ -27,7 +27,7 @@ public class NotificationController {
     @TimeLimiter(name = "notification-processing")
     public CompletableFuture<Void> sendNotification(@RequestBody NotificationRequest notificationRequest) {
         log.info("Processing notification request: {}", notificationRequest);
-        
+
         return CompletableFuture.runAsync(() -> {
             notificationService.send(notificationRequest);
             log.debug("Notification processed successfully for customer: {}", notificationRequest.toCustomerId());

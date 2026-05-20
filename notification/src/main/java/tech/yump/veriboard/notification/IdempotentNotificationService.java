@@ -121,16 +121,8 @@ public class IdempotentNotificationService {
         }
     }
 
-    /**
-     * Finds notification by idempotency key.
-     * This would require adding a findByIdempotencyKey method to the repository.
-     */
     private Optional<Notification> findByIdempotencyKey(String idempotencyKey) {
-        // This would need to be implemented in the repository
-        // return notificationRepository.findByIdempotencyKey(idempotencyKey);
-        
-        // For now, return empty to demonstrate the pattern
-        return Optional.empty();
+        return notificationRepository.findByIdempotencyKey(idempotencyKey);
     }
 
     /**

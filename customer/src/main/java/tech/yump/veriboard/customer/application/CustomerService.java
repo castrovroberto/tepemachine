@@ -1,67 +1,59 @@
 package tech.yump.veriboard.customer.application;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import tech.yump.veriboard.customer.domain.Customer;
 import tech.yump.veriboard.customer.domain.CustomerRegistrationRequest;
+import tech.yump.veriboard.customer.domain.events.CustomerRegisteredEvent;
 import tech.yump.veriboard.customer.domain.exceptions.CustomerFraudException;
 import tech.yump.veriboard.customer.domain.ports.CustomerRepository;
 import tech.yump.veriboard.customer.domain.ports.FraudCheckService;
-import tech.yump.veriboard.customer.domain.ports.NotificationService;
 import tech.yump.veriboard.customer.domain.services.CustomerValidationService;
+import tech.yump.veriboard.customer.infrastructure.outbox.OutboxEventPublisher;
 
-/**
- * Application service for customer registration use case.
- * Orchestrates domain services and external ports to fulfill business requirements.
- */
+import java.util.UUID;
+
+@Slf4j
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerValidationService validationService;
     private final FraudCheckService fraudCheckService;
-    private final NotificationService notificationService;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     public CustomerService(
             CustomerRepository customerRepository,
             CustomerValidationService validationService,
             FraudCheckService fraudCheckService,
-            NotificationService notificationService) {
+            OutboxEventPublisher outboxEventPublisher) {
         this.customerRepository = customerRepository;
         this.validationService = validationService;
         this.fraudCheckService = fraudCheckService;
-        this.notificationService = notificationService;
+        this.outboxEventPublisher = outboxEventPublisher;
     }
 
-    /**
-     * Registers a new customer following the complete business process.
-     * 
-     * @param request the customer registration request
-     * @return the registered customer with assigned ID
-     * @throws CustomerValidationException if validation fails
-     * @throws CustomerFraudException if fraud is detected
-     */
+    @Transactional
     public Customer registerCustomer(CustomerRegistrationRequest request) {
-        // Step 1: Validate the request according to business rules
         validationService.validateCustomerRegistration(request);
-        
-        // Step 2: Create and persist the customer
-        Customer customer = request.toCustomer();
-        Customer savedCustomer = customerRepository.save(customer);
-        
-        // Step 3: Perform fraud check on the saved customer
+
+        Customer savedCustomer = customerRepository.save(request.toCustomer());
+
         boolean isFraudulent = fraudCheckService.isFraudulent(savedCustomer.getId());
         if (isFraudulent) {
             throw new CustomerFraudException("Customer registration blocked due to fraud detection");
         }
-        
-        // Step 4: Send welcome notification (best effort - don't fail registration)
-        try {
-            notificationService.sendWelcomeNotification(savedCustomer);
-        } catch (Exception e) {
-            // Log the error but don't fail the registration
-            // In a real application, you might want to queue this for retry
-            System.err.println("Failed to send welcome notification for customer " + 
-                             savedCustomer.getId() + ": " + e.getMessage());
-        }
-        
+
+        // Write to outbox in the same transaction — RabbitMQ publish happens async via poller
+        CustomerRegisteredEvent event = new CustomerRegisteredEvent(
+                savedCustomer.getId(),
+                savedCustomer.getFirstName(),
+                savedCustomer.getLastName(),
+                savedCustomer.getEmail(),
+                UUID.randomUUID().toString()
+        );
+        outboxEventPublisher.publish(event);
+
+        log.info("Customer {} registered; outbox event queued for notification", savedCustomer.getId());
         return savedCustomer;
     }
 } 

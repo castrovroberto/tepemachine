@@ -3,6 +3,7 @@ package tech.yump.veriboard.customer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(
         scanBasePackages = {
@@ -14,6 +15,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(
         basePackages = "tech.yump.veriboard.clients"
 )
+@EnableScheduling
 public class CustomerApplication {
 
     public static void main(String[] args) {

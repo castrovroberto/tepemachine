@@ -6,30 +6,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tech.yump.veriboard.customer.domain.events.CustomerEvent;
 
-/**
- * JPA-based implementation of OutboxEventPublisher.
- * Stores events in the database for the Outbox pattern.
- */
 @Component
 @Slf4j
 public class JpaOutboxEventPublisher implements OutboxEventPublisher {
-    
+
+    private final JpaOutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
-    
-    public JpaOutboxEventPublisher(ObjectMapper objectMapper) {
+
+    public JpaOutboxEventPublisher(JpaOutboxEventRepository outboxEventRepository,
+                                   ObjectMapper objectMapper) {
+        this.outboxEventRepository = outboxEventRepository;
         this.objectMapper = objectMapper;
     }
-    
+
     @Override
     public void publish(CustomerEvent event) {
         try {
-            log.info("Publishing event to outbox: {} for customer {}", 
-                    event.getEventType(), event.getCustomerId());
-            
-            // Convert event to JSON
             String eventData = objectMapper.writeValueAsString(event);
-            
-            // Create outbox event
+
             OutboxEvent outboxEvent = OutboxEvent.builder()
                     .eventId(event.getEventId())
                     .eventType(event.getEventType())
@@ -38,13 +32,13 @@ public class JpaOutboxEventPublisher implements OutboxEventPublisher {
                     .occurredAt(event.getOccurredAt())
                     .processed(false)
                     .build();
-            
-            // For now, just log the event (in production, you'd save to database)
-            log.info("Event stored in outbox: {}", outboxEvent);
-            
+
+            outboxEventRepository.save(outboxEvent);
+            log.debug("Outbox event persisted: type={} customerId={}", event.getEventType(), event.getCustomerId());
+
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize event: {}", event, e);
-            throw new RuntimeException("Failed to publish event to outbox", e);
+            log.error("Failed to serialize outbox event for customer {}", event.getCustomerId(), e);
+            throw new RuntimeException("Failed to write event to outbox", e);
         }
     }
 } 

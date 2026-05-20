@@ -1,5 +1,6 @@
 package tech.yump.veriboard.customer.infrastructure.web;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> registerCustomer(
-            @RequestBody CustomerRegistrationRequest customerRegistrationRequest) {
+            @Valid @RequestBody CustomerRegistrationRequest customerRegistrationRequest) {
         
         log.info("New customer registration request: {}", customerRegistrationRequest);
         

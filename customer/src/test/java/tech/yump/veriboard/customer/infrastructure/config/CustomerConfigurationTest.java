@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import tech.yump.veriboard.customer.application.CustomerService;
 import tech.yump.veriboard.customer.domain.ports.CustomerRepository;
 import tech.yump.veriboard.customer.domain.ports.FraudCheckService;
-import tech.yump.veriboard.customer.domain.ports.NotificationService;
 import tech.yump.veriboard.customer.domain.services.CustomerValidationService;
+import tech.yump.veriboard.customer.infrastructure.outbox.OutboxEventPublisher;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -27,7 +27,7 @@ class CustomerConfigurationTest {
     private FraudCheckService fraudCheckService;
 
     @Mock
-    private NotificationService notificationService;
+    private OutboxEventPublisher outboxEventPublisher;
 
     @BeforeEach
     void setUp() {
@@ -37,64 +37,46 @@ class CustomerConfigurationTest {
     @Test
     @DisplayName("Should create CustomerValidationService bean")
     void shouldCreateCustomerValidationServiceBean() {
-        // When
         CustomerValidationService validationService = customerConfiguration
-            .customerValidationService(customerRepository);
+                .customerValidationService(customerRepository);
 
-        // Then
-        assertThat(validationService).isNotNull();
-        assertThat(validationService).isInstanceOf(CustomerValidationService.class);
+        assertThat(validationService).isNotNull().isInstanceOf(CustomerValidationService.class);
     }
 
     @Test
     @DisplayName("Should create CustomerService bean with all dependencies")
     void shouldCreateCustomerServiceBeanWithAllDependencies() {
-        // Given
         CustomerValidationService validationService = customerConfiguration
-            .customerValidationService(customerRepository);
+                .customerValidationService(customerRepository);
 
-        // When
         CustomerService customerService = customerConfiguration.customerService(
-            customerRepository,
-            validationService,
-            fraudCheckService,
-            notificationService
-        );
+                customerRepository, validationService, fraudCheckService, outboxEventPublisher);
 
-        // Then
-        assertThat(customerService).isNotNull();
-        assertThat(customerService).isInstanceOf(CustomerService.class);
+        assertThat(customerService).isNotNull().isInstanceOf(CustomerService.class);
     }
 
     @Test
     @DisplayName("Should create different instances for each call")
     void shouldCreateDifferentInstancesForEachCall() {
-        // When
-        CustomerValidationService validationService1 = customerConfiguration
-            .customerValidationService(customerRepository);
-        CustomerValidationService validationService2 = customerConfiguration
-            .customerValidationService(customerRepository);
+        CustomerValidationService vs1 = customerConfiguration.customerValidationService(customerRepository);
+        CustomerValidationService vs2 = customerConfiguration.customerValidationService(customerRepository);
 
-        // Then
-        assertThat(validationService1).isNotSameAs(validationService2);
+        assertThat(vs1).isNotSameAs(vs2);
     }
 
     @Test
-    @DisplayName("Should create CustomerService with proper configuration")
-    void shouldCreateCustomerServiceWithProperConfiguration() {
-        // Given
+    @DisplayName("Should create distinct CustomerService instances per call")
+    void shouldCreateDistinctCustomerServiceInstances() {
         CustomerValidationService validationService = customerConfiguration
-            .customerValidationService(customerRepository);
+                .customerValidationService(customerRepository);
 
-        // When
-        CustomerService customerService1 = customerConfiguration.customerService(
-            customerRepository, validationService, fraudCheckService, notificationService);
-        CustomerService customerService2 = customerConfiguration.customerService(
-            customerRepository, validationService, fraudCheckService, notificationService);
+        CustomerService cs1 = customerConfiguration.customerService(
+                customerRepository, validationService, fraudCheckService, outboxEventPublisher);
+        CustomerService cs2 = customerConfiguration.customerService(
+                customerRepository, validationService, fraudCheckService, outboxEventPublisher);
 
-        // Then
-        assertThat(customerService1).isNotNull();
-        assertThat(customerService2).isNotNull();
-        assertThat(customerService1).isNotSameAs(customerService2); // Each call creates new instance
+        assertThat(cs1).isNotNull();
+        assertThat(cs2).isNotNull();
+        assertThat(cs1).isNotSameAs(cs2);
     }
-} 
+}
