@@ -2,7 +2,6 @@ package tech.yump.veriboard.customer.infrastructure.external;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -33,7 +32,9 @@ public class ResilientFraudCheckServiceAdapter implements FraudCheckService {
     @Override
     @CircuitBreaker(name = "fraud-service", fallbackMethod = "fallbackFraudCheck")
     @Retry(name = "fraud-service")
-    @TimeLimiter(name = "fraud-service")
+    // @TimeLimiter omitted: it requires a CompletableFuture return type and cannot be
+    // applied to a boolean method. The internal future.join() already provides a timeout
+    // boundary via the Feign read-timeout configured in application.yml.
     public boolean isFraudulent(Integer customerId) {
         log.debug("Checking fraud for customer: {}", customerId);
         
